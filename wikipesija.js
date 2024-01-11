@@ -1,5 +1,4 @@
-var latin_version = document.body.innerHTML;
-var sitelen_pona_version;
+
 
 function isLetter(str) {
 	return str.length === 1 && str.match(/[a-z]/i);
@@ -49,16 +48,3 @@ function processHTML(str) {
 
 	return res;
 }
-
-var is_latin_version = true;
-
-function toggleHTML()
-{
-	if (is_latin_version)
-		document.body.innerHTML = sitelen_pona_version;
-	else
-		document.body.innerHTML = latin_version;
-	is_latin_version = !is_latin_version;
-}
-
-
