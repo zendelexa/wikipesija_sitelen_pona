@@ -22,6 +22,8 @@ function main() {
 	document.getElementById("right-navigation").insertAdjacentElement("beforeend", button);
 
 	sitelen_pona_version = document.body.innerHTML;
+	
+	setTimeout(l_to_sp_function, 300); // For some reason "o ante" converts back after a bit
 }
 
 main();
