@@ -5,9 +5,7 @@
 
   "description": "",
 
-  "icons": {
-    "48": "icons/border-48.png"
-  },
+  "icons": {},
 
   "content_scripts": [
     {
