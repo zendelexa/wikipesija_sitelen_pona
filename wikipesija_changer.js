@@ -1,26 +1,11 @@
-function isLetter(str) {
-	return !(" 1234567890-=!@#$%^&*()_+`~,./;'[]\\<>?:\"{}|\n\t".includes(str));
-
-	//return str.length === 1 && str.match(/[a-z]/i);
-}
-
-function getSitelen(word, is_link) {
-	if (word == "") return word;
-
-	if (word in sitelens)
-	{
-		if (is_link) word += "_blue";
-		return "<img src=\" data:image/png;base64," + sitelens[word] + "\" />";
-	}
-
-	if (word[0].toLowerCase() != word[0] && isSitelenPonizable(word)) return sitelenPonize(word, is_link);
-	return word;	
+function isLetter(char) {
+	return !(" 1234567890-=!@#$%^&*()_+`~,./;'[]\\<>?:\"{}|\n\t".includes(char));
 }
 
 toki_pona_letters = ['w', 'e', 't', 'u', 'i', 'o', 'p', 'a', 's', 'j', 'k', 'l', 'n', 'm']
 toki_pona_consonants = ['w', 't', 'p', 's', 'j', 'k', 'l', 'n', 'm'];
 toki_pona_vowels = ['a', 'e', 'i', 'o', 'u'];
-sitelen_pona_letters = {
+alphabetization = {
 	'w' : 'waso',
 	'e' : 'esun',
 	't' : 'telo',
@@ -36,9 +21,9 @@ sitelen_pona_letters = {
 	'n' : 'nena',
 	'm' : 'moku'
 };
-const CONSONANT = 'w';
-const VOWEL = 'a';
-const NASAL = 'n';
+const CONSONANT_TYPE = 'w';
+const VOWEL_TYPE = 'a';
+const N_TYPE = 'n';
 function isSitelenPonizable(word)
 {
 	prev_type = "";
@@ -47,80 +32,72 @@ function isSitelenPonizable(word)
 		if (!toki_pona_letters.includes(word[i].toLowerCase()))
 			return false;
 		curr_type = "";
-		if (word[i].toLowerCase() == 'n' && prev_type != NASAL)
-			curr_type = NASAL;
+		if (word[i].toLowerCase() == 'n' && prev_type != N_TYPE)
+			curr_type = N_TYPE;
 		else if (toki_pona_consonants.includes(word[i].toLowerCase()))
-			curr_type = CONSONANT;
+			curr_type = CONSONANT_TYPE;
 		else
-			curr_type = VOWEL;
+			curr_type = VOWEL_TYPE;
 		
-		if (prev_type == CONSONANT && curr_type == CONSONANT) return false;
-		if (prev_type == CONSONANT && curr_type == NASAL) return false;
+		if (prev_type == CONSONANT_TYPE && curr_type == CONSONANT_TYPE) return false;
+		if (prev_type == CONSONANT_TYPE && curr_type == N_TYPE) return false;
 		prev_type = curr_type;
 	}
-	if (prev_type == CONSONANT) return false;
+	if (prev_type == CONSONANT_TYPE) return false;
 	return true;
 }
 function sitelenPonize(word, is_link)
 {
-	let ans = "";
-	ans += "namestart";
+	var new_div = document.createElement('spdiv');
+	new_div.appendChild(getImage("namestart", is_link));
 	for (var i = 0; i < word.length; i++)
-	{
-		ans += " " + sitelen_pona_letters[word[i].toLowerCase()];
-	}
-	ans += " " + "nameend";
-	ans = ans.split(" ");
-
-	ans2 = "";
-	for (var i = 0; i < ans.length; i++)
-	{
-		if (is_link)
-			ans[i] += "_blue";
-		ans2 += getSitelen(ans[i]);
-	}
-	return ans2;
+		new_div.appendChild(getImage(alphabetization[word[i].toLowerCase()], is_link));
+	new_div.appendChild(getImage("nameend", is_link));
+	return new_div;
 }
 
-function processHTML(str) {
-	var res = "";
-	var is_text = true;
-	var is_link = false;
-	var word = ""
-	for (var i = 0; i < str.length; i++) {
-		var character = str[i];
-		if (character == '<') {
-			if (str.slice(i, i + 3) == "<a ")
-				is_link = true;
-			is_text = false;
-			res += getSitelen(word, is_link);
-			word = "";
-			if (str.slice(i, i + 4) == "</a>")
-				is_link = false;
-		}
-		else if (character == '>')
-		{
-			is_text = true;
-		}
+function getImage(word, is_link) {
+	if (word in images)
+	{
+		if (is_link) word += "_blue";
 
-		if ((!is_text || character == '>') && character != ' ')
-			res += character;
-		else if (isLetter(character))
+		var word_image = document.createElement("img");
+		word_image.setAttribute("src", "data:image/png;base64," + images[word]);
+
+		return word_image;
+	}
+
+	if (word[0].toLowerCase() != word[0] && isSitelenPonizable(word)) return sitelenPonize(word, is_link);
+	return document.createTextNode(word);	
+}
+
+function addSitelenPona(node, is_link) {
+	var new_div = document.createElement('spdiv');
+	var word = ""
+	for (var i = 0; i < node.data.length; i++) {
+		var character = node.data[i];
+		if (isLetter(character))
 			word += character;
 		else {
-			res += getSitelen(word, is_link);
-			if (res[res.length - 1] != '>' || character != ',')
-			{
-				if (character != "." || !">)]".includes(res[res.length - 1]))
-					res += character;
-				else
-					res += 'ㆍ';
-			}
+			if (word !== "" && word !== "\n" && word !== "\t")
+				new_div.appendChild(getImage(word, is_link));
+			new_div.appendChild(document.createTextNode(character));
 			word = "";
 		}
-
 	}
-	res += getSitelen(word, is_link);
+	if (word !== "" && word !== "\n" && word !== "\t")
+		new_div.appendChild(getImage(word, is_link));
 
-	return res;
+	node.parentNode.replaceChild(new_div, node);
+}
+
+function changeToSitelenPona(node, is_link) {
+	if (node.tagName == "SCRIPT") return;
+	if (node.tagName == "A") is_link = true;
+	if (node.nodeType !== Node.TEXT_NODE)
+		for (var i = 0; i < node.childNodes.length; i++)
+			changeToSitelenPona(node.childNodes[i], is_link);
+	else if (node.data !== "\n" && node.data !== " "){
+		addSitelenPona(node, is_link);
+	}
 }

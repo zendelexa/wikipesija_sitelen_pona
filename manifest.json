@@ -10,7 +10,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.wikipesija.org/*"],
-      "js": ["sitelens.js", "wikipesija_changer.js", "main.js"]
+      "js": ["images.js", "wikipesija_changer.js", "main.js"]
     }
   ]
 }
